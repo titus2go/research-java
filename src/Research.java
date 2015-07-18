@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.json.*;
@@ -28,98 +27,93 @@ import org.json.*;
  */
 public class Research {
 
-    private String url = "http://localhost:8080/";
-    private String userID = "";
-    private String userName = "";
-    private String password = "";
-    private boolean isSignedIn;
+    private String localTestUrl = "http://localhost:8080/";
+    private String stagingURL = "52.27.225.80;8080";
+    
+    private String url = stagingURL;
     
     public Research()
     {
-    	isSignedIn = false;
+
     }
     
-    public String getUserID()
-    {
-    	return userID;
-    }
-    
-    public String getUserName()
-    {
-    	return userName;
-    }
-    
-    public String getPassword()
-    {
-    	return password;
-    }
+ 
 
     //Create a new user, good for new user signup 
     public JSONObject signup(final String username, final String password){
     	final String api = "api/signup";
+    	
+    	//Post object parameter
     	JSONObject userSignupInfo = new JSONObject();
     	userSignupInfo.put("username", username);
 		userSignupInfo.put("password", password);
 		
-		//call api
-		JSONObject result = new JSONObject(callAPI(userSignupInfo, api));
-		
-		//Result
-		return result;
+		//Response data as JSONobject
+		return new JSONObject(callAPI(userSignupInfo, api));
+
     }
     
-    //Supply this method with a username and password
-    //Return: user id if successful
+    //Login user using their name and password
+    //Parameter:  theUsername(String), thePassword(String)
+    //Return:  JSONObject for response object
     public JSONObject signin(final String theUsername, final String thePassword) {
     	
 	    	final String api  = "api/signin";
 	    	
+	    	//Post object parameter
 	    	JSONObject userSigninInfo = new JSONObject();
 	    	userSigninInfo.put("username", theUsername);
 			userSigninInfo.put("password", thePassword);
 			
-			JSONObject userinfo = new JSONObject(callAPI(userSigninInfo, api));
-			if(userinfo.getBoolean("status") == true) {
-				userID =  userinfo.getString("id");
-				password = thePassword;
-				userName = theUsername;
-			}
-			return userinfo;
+	
+			return new JSONObject(callAPI(userSigninInfo, api));
     }
     
-    public JSONObject getSurveyIDS(final String userid)
+    
+    //Get all the survey id from a user
+    //Parameter:  theSessionID(String)
+    //Return:  JSONObject for response object
+    public JSONObject getSurveyIDS(final String theSessionID)
     {
     	final String api = "api/getsurveyids";
     	
     	JSONObject myinfo = new JSONObject();
-    	myinfo.put("userid", userid);
+    	myinfo.put("sessionid", theSessionID);
     	
     	return new JSONObject(callAPI(myinfo, api));
     }
     
-//    public JSONArray getSurveyResult(final String userid, final String surveyid)
-//    {
-//    	
-//    }
+    //Get the survey result from a survey id
+    //Parameter:  theSessionID(String), theSurveyID(String)
+    //Return:  JSONObject for response object
+    public JSONObject getSurveyResult(final String theSessionID, final String theSurveyID)
+    {
+		final String api = "api/getsurveyresult";
+		
+		JSONObject data = new JSONObject();
+		data.put("surveyid", theSurveyID);
+		data.put("sessionid", theSessionID);
+		
+		return new JSONObject(callAPI(data, api));
+    }
     
     
-    //Submitting survey
-    public JSONObject submitSurvey(final String userid, final String startTime, final String endTime, final JSONArray questions)
+    //Submit a survey to the server
+    //Parameter:  theSessionID(String), theStartTime(String), theEndTime(String), theQuestionList(String)
+    //Return:  JSONObject for response object
+    public JSONObject submitSurvey(final String theSessionID, final String theStartTime, final String theEndTime, final JSONArray theQuestionList)
     {
     	final String api = "api/submitsurvey";
     	
     	JSONObject survey = new JSONObject();
-    	survey.put("userid", userid);
-    	survey.put("starttime", startTime);
-    	survey.put("endtime", endTime);
-    	survey.put("survey", questions);
+    	survey.put("sessionid", theSessionID);
+    	survey.put("starttime", theStartTime);
+    	survey.put("endtime", theEndTime);
+    	survey.put("survey", theQuestionList);
     	
     	
-    	JSONObject result = new JSONObject(callAPI(survey, api));
-    	System.out.println("status: " + result.getBoolean("status") + "  message: " + result.getString("message"));
-    	return result;
-    	
-    	
+    	return new JSONObject(callAPI(survey, api));
+   	
     }
     //Get the symptom name with their corresponding id number
     //symptom id is used for constructing survey using json object
