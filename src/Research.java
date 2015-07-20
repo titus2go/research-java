@@ -28,7 +28,7 @@ import org.json.*;
 public class Research {
 
     private String localTestUrl = "http://localhost:8080/";
-    private String stagingURL = "52.27.225.80;8080";
+    private String stagingURL = "http://52.27.225.80:8080/";
     
     private String url = stagingURL;
     
