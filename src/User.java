@@ -8,7 +8,7 @@ import org.json.*;
 public class User {
 	
 	private String mySessionID = "";
-	private List<String> mySurveyIDS;
+	private List<SurveyHeading> mySurveyHeadings;
 	
 	private Research myResearch;
 	
@@ -19,14 +19,29 @@ public class User {
 	
 	private boolean isSignedIn;
 	
-	public User(final String theUsername, final String thePassword)
+	public static User getInstance(final String theUsername, final String thePassword)
+	{
+		if(instance == null){
+			instance = new User();
+		}
+		return instance;
+		
+	}
+	
+	private static User instance = null;
+	
+	protected User() {
+		
+	}
+	
+	public void setUserInfo(final String theUsername, final String thePassword)
 	{
 		myUsername = theUsername;
 		myPassword = thePassword;
 		myResearch = new Research();
-		
 		isSignedIn = false;
 	}
+	
 	
 	public void signin()
 	{
@@ -41,70 +56,87 @@ public class User {
 		
 	}
 	
-	public boolean submitSurvey(final String theStartTime, final String theEndTime, final List<Question> theQuestionList)
+	public boolean submitSurvey(final Survey theSurvey)
 	{
 		if(isSignedIn) {
-			JSONArray qlist = new JSONArray();
-			for(int i = 0; i < theQuestionList.size(); i++){
-				final Question theQ = theQuestionList.get(i);
-				final String q = "{'symptom':" + theQ.getText() + ", 'status':" + theQ.getAnswer() + "}";
-				System.out.println(q);
-				JSONObject jq = new JSONObject(q);
-				qlist.put(jq);
-			}
-			JSONObject result = myResearch.submitSurvey(mySessionID, theStartTime, theEndTime, qlist);
-			if(result.getBoolean("status")) {
-				System.out.println(result.getString("message"));
-				return true;
-			} else {
-				System.out.println(result.getString("message"));
-				return false;
-			}
+			JSONObject response = myResearch.submitSurvey(theSurvey, mySessionID);
+			return response.getBoolean("status");
 		} else {
 			System.out.println("You must be signed in first");
 			return false;
 		}
 	}
 	
-	public Survey getSurveyResult(final String theSurveyID)
+	public Survey getSurvey(final SurveyHeading heading)
 	{
-		Survey survey = null;
 		if(isSignedIn){
-			receivedData = myResearch.getSurveyResult(mySessionID, theSurveyID);
-			if(receivedData.getBoolean("status")) {
-				List<Question> questionList = new ArrayList<Question>();
-				JSONArray questions = receivedData.getJSONArray("survey");
-				for(int i = 0; i < questions.length(); i++) {
-					final JSONObject question = questions.getJSONObject(i);
-					final String text = question.getString("SymptomName");
-					final int answer = question.getInt("SymptomStatus");
-					Question newQuestion = new Question(text, answer);
-					questionList.add(newQuestion);
-				}
-				survey = new Survey(theSurveyID, questionList);
+			Survey mySurvey = new Survey();
+			mySurvey.setHeading(heading);
+			List<Question> surveyquestions = new ArrayList<Question>();
+			JSONObject response = myResearch.getQuestions(mySessionID, heading.getSurveyID());
+			JSONArray questions = response.getJSONArray("questions");
+			for(int i = 0 ; i < questions.length(); i++) 
+			{
+				JSONObject json_question = questions.getJSONObject(i);
+				final String qID = json_question.getString("QuestionID");
+				final int qType = json_question.getInt("QuestionType");
+				final String qText = json_question.getString("QuestionText");
+				Question q = new Question(qType, qID, qText);
 				
+				JSONObject options_response = myResearch.getOptions(mySessionID, q.getID());
+				JSONArray options_array = options_response.getJSONArray("options");
+				for(int j = 0; j < options_array.length(); j++)
+				{
+					JSONObject option = options_array.getJSONObject(j);
+					final int opID = option.getInt("OptionID");
+					final int opStatus = option.getInt("OptionStatus");
+					final String opName = option.getString("OptionName");
+					Option newOp = new Option(opID, opStatus, opName);
+					q.addOption(newOp);
+				}
+				mySurvey.addQuestion(q);
+	//			System.out.println("QuestionID: " + qID + "  QuestionType: " + qType + "   QuestionText: " + qText);
 			}
+			return mySurvey;
 		}
-		return survey;
-		
+		return null;
 	}
 	
-	public List<String> getSurveyIDS()
+	
+	public List<Action> getActions()
+	{
+		if(isSignedIn) {
+			List<Action> actionList = new ArrayList<Action>();
+			receivedData = myResearch.getActions(mySessionID);
+			if(receivedData.getBoolean("status")) {
+				JSONArray list = receivedData.getJSONArray("actions");
+				for(int i = 0; i < list.length(); i++) 
+				{
+					JSONObject json_action = list.getJSONObject(i);
+					Action newAction = new Action(json_action.getString("ActionName"), json_action.getInt("ActionID"));
+					actionList.add(newAction);
+				}
+				return actionList;
+			}
+		}
+		return null;
+	}
+	
+	public List<SurveyHeading> getSurveyHeadings()
 	{
 		
 		if(isSignedIn) {
-			mySurveyIDS = new ArrayList<String>();
+			mySurveyHeadings = new ArrayList<SurveyHeading>();
 			receivedData = myResearch.getSurveyIDS(mySessionID);
 			if(receivedData.getBoolean("status")) {
 				JSONArray list = receivedData.getJSONArray("id");
 				final List<String> temp = new ArrayList<String>();
 				for(int i = 0; i < list.length(); i++) {
 					JSONObject surveyid = list.getJSONObject(i);
-					temp.add(surveyid.getString("SurveyID"));
-					System.out.println("survey ids: " + temp.get(i));
+					SurveyHeading head = new SurveyHeading(surveyid.getString("StartTime"), surveyid.getString("EndTime"), surveyid.getString("SurveyID"));
+					mySurveyHeadings.add(head);
 				}
-				mySurveyIDS = temp;
-				return mySurveyIDS;
+				return mySurveyHeadings;
 			}
 			return null;
 			

@@ -1,29 +1,56 @@
+import java.util.ArrayList;
+import java.util.List;
+
 //Question is a class that abstracts a question in a survey
 
 public class Question {
 	
-	private String myText;
-	private int myAnswer;
+	private int myType;
+	private String myID;
+	private String myName;
+	private List<Option> myOptions;
 	
-	public Question(final String theText, int theAnswer)
+	
+	public Question(int theType, final String theID, final String theName)
 	{
-		myText = theText;
-		myAnswer = theAnswer;
+		myType = theType;
+		myID = theID;
+		myName = theName;
+		myOptions = new ArrayList<Option>();
 	}
 	
-	public String getText()
+	public Question(int theType)
 	{
-		return myText;
+		myType = theType;
+		myID = "";
+		myOptions = new ArrayList<Option>();
+		myName = "";
 	}
 	
-	public int getAnswer()
+	public String getName()
 	{
-		return myAnswer;
+		return myName;
 	}
 	
-	public String toString()
+	public void addOption(final Option theOption)
 	{
-		return myText + " - " + myAnswer;
+		myOptions.add(theOption);
+	}
+	
+	public String getID()
+	{
+		return myID;
+	}
+	
+	public int getType()
+	{
+		return myType;
+	}
+	
+	
+	public List<Option> getOptions()
+	{
+		return myOptions;
 	}
 
 }

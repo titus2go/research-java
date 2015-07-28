@@ -1,25 +1,41 @@
 //Survey is a class that abstracts a survey
 //A survey can contain many different questions;
 
+import java.util.ArrayList;
 import java.util.List;
 
+
 public class Survey {
-	private String mySurveyID = "";
+	
+	private SurveyHeading myHeading;
 	private List<Question> myQuestions;
-	public Survey(final String theSurveyID, final List<Question> theQuestionList)
+	
+	public Survey()
 	{
-		myQuestions = theQuestionList;
-		mySurveyID = theSurveyID;
+		myQuestions = new ArrayList<Question>();
 	}
 	
-	public String getID()
+	
+	
+	public void setHeading(final SurveyHeading theHeading)
 	{
-		return mySurveyID;
+		myHeading = theHeading;
 	}
+	
+	public void addQuestion(final Question theQuestion)
+	{
+		myQuestions.add(theQuestion);
+	}
+	
 	
 	public List<Question> getQuestions()
 	{
 		return myQuestions;
+	}
+	
+	public SurveyHeading getHeading()
+	{
+		return myHeading;
 	}
 	
 }
