@@ -91,7 +91,8 @@ public class User {
 					final int opID = option.getInt("OptionID");
 					final int opStatus = option.getInt("OptionStatus");
 					final String opName = option.getString("OptionName");
-					Option newOp = new Option(opID, opStatus, opName);
+					final int opType = option.getInt("OptionType");
+					Option newOp = new Option(opID, opStatus, opName, opType);
 					q.addOption(newOp);
 				}
 				mySurvey.addQuestion(q);

@@ -194,8 +194,9 @@ public class Research {
     				{
     					Option op = options.get(j);
     					JSONObject json_op = new JSONObject();
-    					json_op.put("type", op.getID());
+    					json_op.put("id", op.getID());
     					json_op.put("status", op.getStatus());
+    					json_op.put("type", op.getType());
     					jsonoption.put(j, json_op);
     				}
     				finalLevel.put("options", jsonoption);
